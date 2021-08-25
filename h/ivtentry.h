@@ -15,6 +15,7 @@ public:
 	void signal();
 	void callOldRoutine();
 	void set_event(KernelEv* kernel_ev);
+	void remove_event();
 
 	static IVTEntry* ivt_entry_table_[256];
 
@@ -24,7 +25,6 @@ private:
 	IVTNo ivt_no_;
 	KernelEv* kernel_ev_;
 	pInterrupt old_interrupt_routine_, new_interrupt_routine_;
-
 };
 
 

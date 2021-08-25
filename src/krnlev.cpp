@@ -4,16 +4,8 @@
 #include "lock.h"
 #include "SCHEDULE.H"
 #include <dos.h>
-#include <iostream.h>
 
 KernelEv::KernelEv(IVTNo ivt_no) : ivt_no_(ivt_no), owner_((PCB*)PCB::running), blocked_(0) ,val_(0) {
-
-	#ifndef BCC_BLOCK_IGNORE
-	HARD_LOCK
-	IVTEntry::ivt_entry_table_[ivt_no_]->old_interrupt_routine_ = getvect(ivt_no_);
-	setvect(ivt_no_, IVTEntry::ivt_entry_table_[ivt_no_]->new_interrupt_routine_);
-	HARD_UNLOCK
-	#endif
 
 	IVTEntry::ivt_entry_table_[ivt_no_]->set_event(this);
 
@@ -21,14 +13,8 @@ KernelEv::KernelEv(IVTNo ivt_no) : ivt_no_(ivt_no), owner_((PCB*)PCB::running), 
 
 KernelEv::~KernelEv() {
 
-	#ifndef BCC_BLOCK_IGNORE
-	HARD_LOCK
-	setvect(ivt_no_, IVTEntry::ivt_entry_table_[ivt_no_]->old_interrupt_routine_);
-	HARD_UNLOCK
-	#endif
-
+	IVTEntry::ivt_entry_table_[ivt_no_]->remove_event();
 	releaseOwner();
-	IVTEntry::ivt_entry_table_[ivt_no_]->set_event(nullptr);
 
 }
 
