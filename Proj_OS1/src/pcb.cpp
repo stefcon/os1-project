@@ -28,6 +28,7 @@ PCB::PCB(StackSize stack_size, Time time_slice, Thread* my_thread)
 	UNLOCK
 }
 
+
 PCB::~PCB() {
 	LOCK
 	if (stack_ != nullptr) {
@@ -41,6 +42,7 @@ PCB::~PCB() {
 	PCB::all_pcbs_.remove_iterator(to_remove);
 	UNLOCK
 }
+
 
 void PCB::initializeStack(StackSize stack_size) {
 	if (stack_size > max_stack_size) stack_size = max_stack_size;
@@ -71,9 +73,11 @@ void PCB::initializeStack(StackSize stack_size) {
 	stack_[stack_size - 12] = 0;						// Starting value of bp, important for fork
 }
 
+
 ID PCB::get_id() const volatile {
 	return my_id_;
 }
+
 
 ID PCB::get_running_id() {
 	if (running)
@@ -81,10 +85,12 @@ ID PCB::get_running_id() {
 	else return -1;
 }
 
+
 PCB* PCB::get_pcb_by_id(ID id) {
 	Thread* thread = PCB::get_thread_by_id(id);
 	return thread->my_pcb_;
 }
+
 
 Thread* PCB::get_thread_by_id(ID id) {
 	Thread* return_value = nullptr;
@@ -101,6 +107,7 @@ Thread* PCB::get_thread_by_id(ID id) {
 	return return_value;
 }
 
+
 void PCB::set_state(State new_state) volatile {
 	LOCK
 	assert(state_ != PCB::Terminated);
@@ -108,18 +115,22 @@ void PCB::set_state(State new_state) volatile {
 	UNLOCK
 }
 
+
 PCB::State PCB::get_state() const volatile {
 	return state_;
 }
+
 
 unsigned PCB::get_time_slice() const volatile {
 	return time_slice_;
 }
 
+
 void PCB::wrapper() {
 	PCB::running->my_thread_->run();
 	PCB::exit();
 }
+
 
 void PCB::start() {
 	LOCK
@@ -129,6 +140,7 @@ void PCB::start() {
 	}
 	UNLOCK
 }
+
 
 void PCB::waitToComplete() {
 	LOCK
@@ -147,6 +159,7 @@ void PCB::waitToComplete() {
 
 }
 
+
 void PCB::waitForForkChildren() {
 	List<PCB*>::Iterator child = PCB::running->children_list_.begin();
 	while (child != PCB::running->children_list_.end()) {
@@ -154,6 +167,7 @@ void PCB::waitForForkChildren() {
 		child = PCB::running->children_list_.remove_iterator(child);
 	}
 }
+
 
 void PCB::exit() {
 	LOCK
