@@ -35,7 +35,6 @@ protected:
 
 	int val_;
 	unsigned tick_counter_;
-	static unsigned tick_lock_;
 	static unsigned global_tick_counter_;
 
 private:

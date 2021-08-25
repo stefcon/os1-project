@@ -22,7 +22,4 @@ private:
 };
 
 
-
-
-
 #endif /* KRNLEV_H_ */

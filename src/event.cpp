@@ -12,8 +12,8 @@ Event::Event(IVTNo ivt_no) {
 Event::~Event() {
 	LOCK
 	delete my_impl_;
-	my_impl_ = nullptr;
 	UNLOCK
+	my_impl_ = nullptr;
 }
 
 void Event::wait() {

@@ -2,6 +2,7 @@
 #include "krnlev.h"
 #include "lock.h"
 #include "utils.h"
+#include <dos.h>
 
 IVTEntry* IVTEntry::ivt_entry_table_[256] = { nullptr };
 

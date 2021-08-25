@@ -6,7 +6,6 @@
 
 List<KernelSem*> KernelSem::all_semaphores_;
 
-unsigned KernelSem::tick_lock_ = 0;
 unsigned KernelSem::global_tick_counter_ = 0;
 
 
@@ -30,12 +29,12 @@ KernelSem::~KernelSem() {
 	List<BlockedInfo*>::Iterator to_deblock;
 	while (unlimited_blocked_list_.empty() == false) {
 		to_deblock = unlimited_blocked_list_.begin();
-		deblock(to_deblock, 1, Unlimited);
+		deblock(to_deblock, 0, Unlimited);
 	}
 
 	while (sleep_blocked_list_.empty() == false) {
 		to_deblock = sleep_blocked_list_.begin();
-		deblock(to_deblock, 1, Sleep);
+		deblock(to_deblock, 0, Sleep);
 	}
 
 	UNLOCK
@@ -61,8 +60,6 @@ void KernelSem::block(Time max_time_to_wait, int& wait_return_val) {
 		unlimited_blocked_list_.push_back(blocked_info);
 	else
 		insert_sleep_sorted(blocked_info);
-
-	tick_lock_ = 0;
 	UNLOCK
 
 	dispatch();
@@ -86,6 +83,7 @@ void KernelSem::deblock(List<BlockedInfo*>::Iterator sem_node, int wait_return_v
 	}
 
 	delete *to_remove;
+
 	if (list_type == Unlimited)
 		unlimited_blocked_list_.remove_iterator(to_remove);
 	else if (list_type == Sleep)
@@ -98,13 +96,11 @@ void KernelSem::deblock(List<BlockedInfo*>::Iterator sem_node, int wait_return_v
 int KernelSem::wait(Time max_time_to_wait) {
 	int wait_return_val;
 	LOCK
-	tick_lock_ = 1;
 	if (--val_ < 0) {
 		block(max_time_to_wait, wait_return_val);
 	} else {
 		wait_return_val = 1;
 	}
-	tick_lock_ = 0;
 	UNLOCK
 	return wait_return_val;
 }
@@ -112,7 +108,6 @@ int KernelSem::wait(Time max_time_to_wait) {
 
 void KernelSem::signal() {
 	LOCK
-	tick_lock_ = 1;
 	if (val_++ < 0) {
 		List<BlockedInfo*>::Iterator to_deblock;
 
@@ -126,7 +121,6 @@ void KernelSem::signal() {
 		}
 
 	}
-	tick_lock_ = 0;
 	UNLOCK
 }
 
@@ -151,7 +145,7 @@ void KernelSem::insert_sleep_sorted(BlockedInfo* blocked_info) {
 void KernelSem::tickAllSemaphores() {
 	++global_tick_counter_;
 
-	if (tick_lock_ == 0) {
+	if (lock_counter == 0) {
 		List<KernelSem*>::Iterator semaphore = KernelSem::all_semaphores_.begin();
 		for (; semaphore != KernelSem::all_semaphores_.end(); ++semaphore) {
 

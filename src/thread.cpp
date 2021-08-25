@@ -16,8 +16,8 @@ Thread::Thread(StackSize stack_size, Time time_slice) {
 Thread::~Thread() {
 	LOCK
 	delete my_pcb_;
+	UNLOCK
 	my_pcb_ = nullptr;
-	UNLOCK;
 }
 
 
@@ -83,11 +83,11 @@ ID Thread::fork() {
 	// We can only fork threads that have allocated their stack
 	if (PCB::running->stack_size_ != 0) {
 		child = PCB::running->my_thread_->clone();
-		if (child == nullptr || child->my_pcb_->stack_ == nullptr) {
+		if (!child || !child->my_pcb_ || !child->my_pcb_->stack_) {
+			delete child;
 			UNLOCK
 			return -1;
 		}
-
 	} else  {
 		UNLOCK
 		return -1;

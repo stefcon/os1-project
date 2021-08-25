@@ -4,6 +4,7 @@
 #include "lock.h"
 #include "SCHEDULE.H"
 #include <dos.h>
+#include <iostream.h>
 
 KernelEv::KernelEv(IVTNo ivt_no) : ivt_no_(ivt_no), owner_((PCB*)PCB::running), blocked_(0) ,val_(0) {
 
@@ -50,8 +51,7 @@ void KernelEv::wait() {
 			blocked_ = (PCB*)PCB::running;
 			UNLOCK
 			dispatch();
-		}
-		else {
+		} else {
 			UNLOCK
 		}
 	} else {
@@ -68,8 +68,7 @@ void KernelEv::signal() {
 			blocked_ = nullptr;
 			UNLOCK
 			dispatch();	// To make it more responsive
-		}
-		else {
+		} else {
 			UNLOCK
 		}
 	} else {
