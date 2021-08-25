@@ -2,7 +2,6 @@
 #include "SCHEDULE.H"
 #include "lock.h"
 #include "utils.h"
-#include <iostream.h>
 
 List<KernelSem*> KernelSem::all_semaphores_;
 
@@ -166,10 +165,9 @@ void KernelSem::tickAllSemaphores() {
 						(*semaphore)->deblock(to_deblock, 0, Sleep);
 					}
 					continue;
-				} else {;
+				} else {
 					(*sem_node)->time_to_wait -= tick_counter;
 					tick_counter = 0;
-					++sem_node;
 				}
 			}
 
