@@ -24,7 +24,8 @@ PCB::PCB(StackSize stack_size, Time time_slice, Thread* my_thread)
 	initializeStack(stack_size);
 
 	LOCK
-	all_pcbs_.push_back(this);
+	if (all_pcbs_.push_back(this) == false)
+		my_id_ = -1;
 	UNLOCK
 }
 
@@ -37,9 +38,10 @@ PCB::~PCB() {
 	}
 	my_thread_ = nullptr;
 
-	List<PCB*>::Iterator to_remove;
-	for (to_remove = all_pcbs_.begin(); *to_remove != this; ++to_remove);
-	PCB::all_pcbs_.remove_iterator(to_remove);
+	List<PCB*>::Iterator to_remove = all_pcbs_.begin();
+	for (; *to_remove != this && to_remove != all_pcbs_.end(); ++to_remove);
+	if (to_remove != all_pcbs_.end())
+		PCB::all_pcbs_.remove_iterator(to_remove);
 	UNLOCK
 }
 
@@ -59,6 +61,7 @@ void PCB::initializeStack(StackSize stack_size) {
 	stack_ = new unsigned[stack_size];
 	UNLOCK
 	if (stack_ == nullptr) {
+		my_id_ = -1;
 		return;
 	}
 	stack_[stack_size - 1] = 0x200;			// set I flag in starting PSW for the thread

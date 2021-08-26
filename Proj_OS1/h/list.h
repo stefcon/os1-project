@@ -23,27 +23,42 @@ public:
 	~List() { clear(); }
 
 	// Methods for inserting, removing and accessing elements of the list
-	void push_front(const T& t) volatile{
+	bool push_front(const T& t) volatile{
+		Node* new_node;
 		if (head_ == nullptr) {
-			head_ = tail_ = new Node(t);
+			new_node = new Node(t);
+			if (new_node == nullptr) return false;
+
+			head_ = tail_ = new_node;
 		} else {
-			head_ = new Node(t, head_);
+			new_node = new Node(t, head_);
+			if (new_node == nullptr) return false;
+
+			head_ = new_node;
 			head_->next->prev = head_;
 		}
 
 		++size_;
-
+		return true;
 	}
 
-	void push_back(const T& t) volatile {
+	bool push_back(const T& t) volatile {
+		Node* new_node;
 		if (head_ == nullptr) {
-			head_ = tail_ = new Node(t);
+			new_node = new Node(t);
+			if (new_node == nullptr) return false;
+
+			head_ = tail_ = new_node;
 		} else {
-			tail_ = new Node(t, nullptr, tail_);
+			new_node = new Node(t, nullptr, tail_);
+			if (new_node == nullptr) return false;
+
+			tail_ = new_node;
 			tail_->prev->next = tail_;
 
 		}
 		++size_;
+		return true;
 	}
 
 	void remove_node(Node* node) volatile {
@@ -134,14 +149,20 @@ public:
 	// Inserts new element before a given iterator
 	Iterator insert(Iterator iter, const T& val) volatile {
 		if (iter == begin()) {
-			push_front(val);
-			return Iterator(head_);
+			if (push_front(val))
+				return Iterator(head_);
+			else
+				return Iterator();
 		} else if (iter == end()) {
-			push_back(val);
-			return Iterator(tail_);
+			if (push_back(val))
+				return Iterator(tail_);
+			else
+				return Iterator();
 		} else {
 
 			Node* new_node = new Node(val);
+			if (new_node == nullptr) return Iterator();
+
 			new_node->next = iter.current;
 			new_node->prev = iter.current->prev;
 			iter.current->prev->next = new_node;
@@ -155,8 +176,6 @@ public:
 		remove_node(oldIterator.current);
 		return iter;
 	}
-
-
 
 };
 

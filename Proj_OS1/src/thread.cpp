@@ -83,7 +83,7 @@ ID Thread::fork() {
 	// We can only fork threads that have allocated their stack
 	if (PCB::running->stack_size_ != 0) {
 		child = PCB::running->my_thread_->clone();
-		if (!child || !child->my_pcb_ || !child->my_pcb_->stack_) {
+		if (!child || !child->my_pcb_ || child->getId() == -1) {
 			delete child;
 			UNLOCK
 			return -1;
