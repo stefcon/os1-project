@@ -213,19 +213,21 @@ void interrupt PCB::fork() {
 
 	fork_child->sp_ = fork_child->bp_ = parent_bp - displacement;
 
-	unsigned index;
-	while (true) {
-		index = (parent_bp - parent_stack_offset) / sizeof(unsigned);
+	if (displacement) {
+		unsigned index;
+		while (true) {
+			index = (parent_bp - parent_stack_offset) / sizeof(unsigned);
 
-		if (fork_parent->stack_[index] == 0) {
-			fork_child->stack_[index] = 0;
-			break;
+			if (fork_parent->stack_[index] == 0) {
+				fork_child->stack_[index] = 0;
+				break;
+			}
+
+			fork_child->stack_[index] = fork_parent->stack_[index] - displacement;
+
+			parent_bp = fork_parent->stack_[index];
+
 		}
-
-		fork_child->stack_[index] = fork_parent->stack_[index] - displacement;
-
-		parent_bp = fork_parent->stack_[index];
-
 	}
 
 	fork_child->my_thread_->start();
