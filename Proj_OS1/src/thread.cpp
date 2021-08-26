@@ -88,7 +88,7 @@ ID Thread::fork() {
 			UNLOCK
 			return -1;
 		}
-	} else  {
+	} else {
 		UNLOCK
 		return -1;
 	}

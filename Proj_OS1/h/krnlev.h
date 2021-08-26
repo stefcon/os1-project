@@ -16,9 +16,6 @@ private:
 	PCB* owner_, * blocked_;
 	IVTNo ivt_no_;
 	int val_;
-
-	void releaseOwner();
-
 };
 
 
