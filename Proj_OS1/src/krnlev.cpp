@@ -3,8 +3,6 @@
 #include "pcb.h"
 #include "lock.h"
 #include "SCHEDULE.H"
-#include <dos.h>
-#include <iostream.h>
 
 
 KernelEv::KernelEv(IVTNo ivt_no) : ivt_no_(ivt_no), owner_((PCB*)PCB::running), blocked_(0) ,val_(0) {

@@ -1,7 +1,6 @@
 #include "semaphor.h"
 #include "krnlsem.h"
 #include "lock.h"
-#include <iostream.h>
 
 
 Semaphore::Semaphore(int init) {

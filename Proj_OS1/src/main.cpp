@@ -1,4 +1,3 @@
-#include <iostream.h>
 #include "list.h"
 #include "system.h"
 #include "userthr.h"
@@ -14,10 +13,8 @@ int main(int argc, char* argv[]) {
 	user_thread.waitToComplete();
 
 	int return_value = user_thread.get_return_value();
-
-	cout << "Return value of main thread is " << return_value << endl;
-
 	System::restoreSystem();
+
 	return return_value;
 
 }

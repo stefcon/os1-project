@@ -2,8 +2,6 @@
 #include "lock.h"
 #include "timer.h"
 #include "utils.h"
-#include <assert.h>
-#include <iostream.h>
 
 
 Thread::Thread(StackSize stack_size, Time time_slice) {
@@ -93,13 +91,11 @@ ID Thread::fork() {
 		return -1;
 	}
 
-	PCB::running->children_list_.push_back(child->my_pcb_);
 
 	fork_child = child->my_pcb_;
 	fork_parent = (PCB*)PCB::running;
 
 	PCB::fork();
-
 
 	if (child->my_pcb_ == PCB::running) {
 		return 0;

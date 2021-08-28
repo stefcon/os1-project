@@ -3,7 +3,9 @@
 
 #include "list.h"
 #include <thread.h>
+#include "semaphor.h"
 #include "utils.h"
+
 
 const StackSize max_stack_size = 65535;
 extern volatile PCB* fork_child;
@@ -43,8 +45,12 @@ private:
 	unsigned time_slice_;
 	ID my_id_;
 	State state_;
-	List<PCB*> children_list_;
 	List<PCB*> suspended_list_;
+	unsigned children_num_;
+	Semaphore children_sem_;
+	PCB* parent_;
+	List<PCB*> children_list_;
+
 
 	Thread* my_thread_;
 

@@ -2,7 +2,7 @@
 #include "SCHEDULE.H"
 #include "lock.h"
 #include "utils.h"
-#include <iostream.h>
+
 
 List<KernelSem*> KernelSem::all_semaphores_;
 

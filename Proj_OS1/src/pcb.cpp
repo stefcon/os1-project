@@ -15,7 +15,8 @@ List<PCB*> PCB::all_pcbs_;
 
 
 PCB::PCB(StackSize stack_size, Time time_slice, Thread* my_thread)
-: time_slice_(time_slice), my_thread_(my_thread), state_(Initialized) {
+: time_slice_(time_slice), my_thread_(my_thread), state_(Initialized),
+  children_num_(0), children_sem_(0), parent_(nullptr) {
 
 	LOCK
 	my_id_ = threadID++;
@@ -164,10 +165,9 @@ void PCB::waitToComplete() {
 
 
 void PCB::waitForForkChildren() {
-	List<PCB*>::Iterator child = PCB::running->children_list_.begin();
-	while (child != PCB::running->children_list_.end()) {
-		(*child)->waitToComplete();
-		child = PCB::running->children_list_.remove_iterator(child);
+	while (PCB::running->children_num_) {
+		((PCB*)PCB::running)->children_sem_.wait(0);
+		--PCB::running->children_num_;
 	}
 }
 
@@ -183,6 +183,23 @@ void PCB::exit() {
 			Scheduler::put(suspended_thread);
 		}
 	}
+
+	// Reset parent pointer inside your children
+	List<PCB*>::Iterator iter = PCB::running->children_list_.begin();
+	for(;iter != PCB::running->children_list_.end(); ++iter) {
+		(*iter)->parent_ = nullptr;
+	}
+
+	// Remove child from parent's children list
+	// and signal its semaphore used in the waitForForkChildren func.
+	if (PCB::running->parent_ != nullptr) {
+		iter = PCB::running->parent_->children_list_.begin();
+		for (; *iter != PCB::running; ++iter);
+		PCB::running->parent_->children_list_.remove_iterator(iter);
+
+		PCB::running->parent_->children_sem_.signal();
+	}
+
 	PCB::running->set_state(Terminated);
 	UNLOCK
 
@@ -229,6 +246,10 @@ void interrupt PCB::fork() {
 
 		}
 	}
+
+	fork_child->parent_ = (PCB*)fork_parent;
+	++fork_parent->children_num_;
+	fork_parent->children_list_.push_back((PCB*)fork_child);
 
 	fork_child->my_thread_->start();
 
