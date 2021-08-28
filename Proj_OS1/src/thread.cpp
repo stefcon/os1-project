@@ -14,8 +14,8 @@ Thread::Thread(StackSize stack_size, Time time_slice) {
 Thread::~Thread() {
 	LOCK
 	delete my_pcb_;
-	UNLOCK
 	my_pcb_ = nullptr;
+	UNLOCK
 }
 
 
