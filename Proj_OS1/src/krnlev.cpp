@@ -15,7 +15,7 @@ KernelEv::KernelEv(IVTNo ivt_no) : ivt_no_(ivt_no), owner_((PCB*)PCB::running), 
 KernelEv::~KernelEv() {
 
 	IVTEntry::ivt_entry_table_[ivt_no_]->remove_event();
-	signal();
+	this->signal();
 
 }
 
@@ -39,7 +39,7 @@ void KernelEv::wait() {
 
 void KernelEv::signal() {
 	LOCK
-	if (++val_ <= 0) {
+	if (++val_ <= 0 && blocked_->get_state() != PCB::Terminated) {
 		blocked_->set_state(PCB::Ready);
 		Scheduler::put(blocked_);
 		blocked_ = nullptr;
@@ -47,5 +47,4 @@ void KernelEv::signal() {
 		val_ = 1;
 	}
 	UNLOCK
-	dispatch();	// To make it more responsive
 }

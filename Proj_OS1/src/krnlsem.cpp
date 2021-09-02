@@ -10,21 +10,15 @@ unsigned KernelSem::global_tick_counter_ = 0;
 
 
 KernelSem::KernelSem(int init) : val_(init<0? 0:init), tick_counter_(0) {
-	#ifndef BCC_BLOCK_IGNORE
-	HARD_LOCK
+	LOCK
 	KernelSem::all_semaphores_.push_back(this);
-	HARD_UNLOCK
-	#endif
+	UNLOCK
 }
 
 
 KernelSem::~KernelSem() {
-	#ifndef BCC_BLOCK_IGNORE
-	HARD_LOCK
-	remove_from_all_semaphores();
-	HARD_UNLOCK
-	#endif
 	LOCK
+	remove_from_all_semaphores();
 
 	List<BlockedInfo*>::Iterator to_deblock;
 	while (unlimited_blocked_list_.empty() == false) {
@@ -163,7 +157,6 @@ void KernelSem::tickAllSemaphores() {
 						(*semaphore)->val_++;
 						(*semaphore)->deblock(to_deblock, 0, Sleep);
 					}
-					continue;
 				} else {
 					(*sem_node)->time_to_wait -= tick_counter;
 					tick_counter = 0;
