@@ -6,7 +6,7 @@
 class IdleThread : public Thread {
 public:
 	IdleThread() : Thread(1024, 1) {}
-	~IdleThread() {}	// waitToComplete would result in permanent blockage
+	~IdleThread() {}
 	void run() { while(1); }
 };
 

@@ -8,7 +8,7 @@
 volatile PCB* System::idle_pcb_ = nullptr;
 volatile PCB* System::main_pcb_ = nullptr;
 
-// Responsible for creating main and idle threads and initializing the IVT table with correct routines
+
 void System::initializeSystem() {
 	Thread* idle_thread = new IdleThread();
 	System::idle_pcb_ = PCB::get_pcb_by_id(idle_thread->getId());

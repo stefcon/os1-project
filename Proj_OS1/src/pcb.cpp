@@ -184,14 +184,13 @@ void PCB::exit() {
 		}
 	}
 
-	// Reset parent pointer inside your children
+
 	List<PCB*>::Iterator iter = PCB::running->children_list_.begin();
 	for(;iter != PCB::running->children_list_.end(); ++iter) {
 		(*iter)->parent_ = nullptr;
 	}
 
-	// Remove child from parent's children list
-	// and signal its semaphore used in the waitForForkChildren func.
+
 	if (PCB::running->parent_ != nullptr) {
 		iter = PCB::running->parent_->children_list_.begin();
 		for (; *iter != PCB::running; ++iter);

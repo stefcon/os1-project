@@ -76,8 +76,7 @@ void KernelSem::deblock(List<BlockedInfo*>::Iterator sem_node, int wait_return_v
 	Scheduler::put((*sem_node)->pcb);
 
 	List<BlockedInfo*>::Iterator to_remove = sem_node++;
-	// When removing element from sleep_blocked_list_ we also have
-	// to worry about updating successors time_to_wait
+
 	if (sem_node != sleep_blocked_list_.end() && sem_node != unlimited_blocked_list_.end()) {
 		(*sem_node)->time_to_wait += (*to_remove)->time_to_wait;
 	}
@@ -129,8 +128,7 @@ void KernelSem::insert_sleep_sorted(BlockedInfo* blocked_info) {
 	List<BlockedInfo*>::Iterator iter = sleep_blocked_list_.begin();
 	for (; iter != sleep_blocked_list_.end(); ++iter) {
 		if (blocked_info->time_to_wait < (*iter)->time_to_wait) {
-			// Update time_to_wait of the element after the new node
-			// by subtracting inserted node value
+
 			(*iter)->time_to_wait -= blocked_info->time_to_wait;
 			sleep_blocked_list_.insert(iter, blocked_info);
 			return;
@@ -138,7 +136,7 @@ void KernelSem::insert_sleep_sorted(BlockedInfo* blocked_info) {
 			blocked_info->time_to_wait -= (*iter)->time_to_wait;
 		}
 	}
-	// We reached the end of the list, just need to put it at the end
+
 	sleep_blocked_list_.push_back(blocked_info);
 }
 
