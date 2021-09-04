@@ -114,7 +114,6 @@ Thread* PCB::get_thread_by_id(ID id) {
 
 void PCB::set_state(State new_state) volatile {
 	LOCK
-	assert(state_ != PCB::Terminated);
 	state_ = new_state;
 	UNLOCK
 }

@@ -36,7 +36,7 @@ volatile int theEnd=0;
 class Producer : public Thread {
 public:
 	Producer (BoundedBuffer* bb, char y, Time time_slice);
-	~Producer() {waitToComplete(); }
+	virtual ~Producer() {waitToComplete(); }
     Thread* clone() const { return new Producer(myBuffer, x, time_slice_clone); }
 protected:
 	virtual void run ();
@@ -130,7 +130,7 @@ void Consumer::run () {
 
 
 
-int userMain (int argc, char* argv[])
+int userMain1 (int argc, char* argv[])
 {
 	BoundedBuffer *buff;
 	Consumer *con;
