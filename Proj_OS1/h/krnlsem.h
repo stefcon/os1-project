@@ -31,7 +31,7 @@ protected:
 	enum ListType {Unlimited, Sleep};
 
 	void block(Time max_time_to_wait, int& wait_return_val);
-	void deblock(List<BlockedInfo*>::Iterator sem_node, int wait_return_val, ListType list_type = Unlimited);
+	void deblock(List<BlockedInfo*>::Iterator& sem_node, int wait_return_val, ListType list_type = Unlimited);
 
 	int val_;
 	unsigned tick_counter_;

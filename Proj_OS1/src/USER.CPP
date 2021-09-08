@@ -72,8 +72,7 @@ private:
 //---------------------------------------------------------------------------//
 // Korisnicki program mora obavezno da definise ovu f-ju
 //---------------------------------------------------------------------------//
-void tick(){
-}
+void tick(){}
 
 //---------------------------------------------------------------------------//
 
@@ -130,7 +129,7 @@ void Consumer::run () {
 
 
 
-int userMain1 (int argc, char* argv[])
+int userMain (int argc, char* argv[])
 {
 	BoundedBuffer *buff;
 	Consumer *con;

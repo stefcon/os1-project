@@ -19,26 +19,35 @@ KernelEv::~KernelEv() {
 
 }
 
-
-void KernelEv::wait() {
-	LOCK
+bool KernelEv::block() {
 	if (PCB::running == owner_) {
 		if (--val_ < 0) {
 			PCB::running->set_state(PCB::Suspended);
 			blocked_ = (PCB*)PCB::running;
-			UNLOCK
-			dispatch();
+			return true;
 		} else {
-			UNLOCK
+			return false;
 		}
 	} else {
-		UNLOCK
+		return false;
 	}
+}
+
+void KernelEv::wait() {
+#ifndef BCC_BLOCK_IGNORE
+	HARD_LOCK
+	if (block()) {
+		dispatch();
+	}
+	HARD_UNLOCK
+#endif
 }
 
 
 void KernelEv::signal() {
-	LOCK
+	#ifndef BCC_BLOCK_IGNORE
+	HARD_LOCK
+	#endif
 	if (++val_ <= 0 && blocked_->get_state() != PCB::Terminated) {
 		blocked_->set_state(PCB::Ready);
 		Scheduler::put(blocked_);
@@ -46,5 +55,7 @@ void KernelEv::signal() {
 	} else {
 		val_ = 1;
 	}
-	UNLOCK
+	#ifndef BCC_BLOCK_IGNORE
+	HARD_UNLOCK
+	#endif
 }

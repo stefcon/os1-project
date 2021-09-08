@@ -62,12 +62,12 @@ void KernelSem::block(Time max_time_to_wait, int& wait_return_val) {
 }
 
 
-void KernelSem::deblock(List<BlockedInfo*>::Iterator sem_node, int wait_return_val, ListType list_type) {
-	LOCK
+void KernelSem::deblock(List<BlockedInfo*>::Iterator& sem_node, int wait_return_val, ListType list_type) {
 
 	(*sem_node)->wait_return_val = wait_return_val;
 	(*sem_node)->pcb->set_state(PCB::Ready);
 	Scheduler::put((*sem_node)->pcb);
+
 
 	List<BlockedInfo*>::Iterator to_remove = sem_node++;
 
@@ -81,8 +81,6 @@ void KernelSem::deblock(List<BlockedInfo*>::Iterator sem_node, int wait_return_v
 		unlimited_blocked_list_.remove_iterator(to_remove);
 	else if (list_type == Sleep)
 		sleep_blocked_list_.remove_iterator(to_remove);
-
-	UNLOCK
 }
 
 
@@ -100,7 +98,7 @@ int KernelSem::wait(Time max_time_to_wait) {
 
 
 void KernelSem::signal() {
-	LOCK
+	HARD_LOCK
 	if (val_++ < 0) {
 		List<BlockedInfo*>::Iterator to_deblock;
 
@@ -114,7 +112,7 @@ void KernelSem::signal() {
 		}
 
 	}
-	UNLOCK
+	HARD_UNLOCK
 }
 
 

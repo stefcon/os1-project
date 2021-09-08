@@ -136,12 +136,12 @@ void PCB::wrapper() {
 
 
 void PCB::start() {
-	LOCK
+	HARD_LOCK
 	if (state_ == Initialized) {
 		state_ = Ready;
 		Scheduler::put(this);
 	}
-	UNLOCK
+	HARD_UNLOCK
 }
 
 
@@ -179,7 +179,9 @@ void PCB::exit() {
 
 		if (suspended_thread != nullptr && suspended_thread->get_state() != Terminated) {
 			suspended_thread->set_state(Ready);
+			HARD_LOCK
 			Scheduler::put(suspended_thread);
+			HARD_UNLOCK
 		}
 	}
 
