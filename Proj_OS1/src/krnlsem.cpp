@@ -152,9 +152,9 @@ void KernelSem::tickAllSemaphores() {
 					// Deblock all neighboring threads whose time_to_wait == 0
 					while (sem_node != (*semaphore)->sleep_blocked_list_.end() &&
 							(*sem_node)->time_to_wait == 0) {
-						List<BlockedInfo*>::Iterator to_deblock = sem_node++;
+						//List<BlockedInfo*>::Iterator to_deblock = sem_node++;
 						(*semaphore)->val_++;
-						(*semaphore)->deblock(to_deblock, 0, Sleep);
+						(*semaphore)->deblock(sem_node, 0, Sleep);
 					}
 				} else {
 					(*sem_node)->time_to_wait -= tick_counter;

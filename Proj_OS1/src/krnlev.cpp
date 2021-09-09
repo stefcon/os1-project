@@ -5,16 +5,16 @@
 #include "SCHEDULE.H"
 
 
-KernelEv::KernelEv(IVTNo ivt_no) : ivt_no_(ivt_no), owner_((PCB*)PCB::running), blocked_(0) ,val_(0) {
+KernelEv::KernelEv(IVTNo ivt_no, int priority) : ivt_no_(ivt_no), owner_((PCB*)PCB::running), blocked_(0) ,val_(0) {
 
-	IVTEntry::ivt_entry_table_[ivt_no_]->set_event(this);
+	IVTEntry::ivt_entry_table_[ivt_no_]->set_event(this, priority);
 
 }
 
 
 KernelEv::~KernelEv() {
 
-	IVTEntry::ivt_entry_table_[ivt_no_]->remove_event();
+	IVTEntry::ivt_entry_table_[ivt_no_]->remove_event(this);
 	this->signal();
 
 }

@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "system.h"
 #include "SCHEDULE.H"
+#include <iostream.h>
 
 ID PCB::threadID = 0;
 volatile PCB* PCB::running = nullptr;

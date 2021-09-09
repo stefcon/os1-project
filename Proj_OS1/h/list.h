@@ -106,6 +106,10 @@ public:
 	public:
 		Iterator(Node* curr = nullptr) : current(curr) {}
 
+		Iterator(const Iterator& iter) {
+			current = iter.current;
+		}
+
 		bool operator==(const Iterator& iter) {
 			return this->current == iter.current;
 		}
@@ -147,7 +151,7 @@ public:
 	}
 
 	// Inserts new element before a given iterator
-	Iterator insert(Iterator iter, const T& val) volatile {
+	Iterator insert(Iterator& iter, const T& val) volatile {
 		if (iter == begin()) {
 			if (push_front(val))
 				return Iterator(head_);
@@ -171,10 +175,9 @@ public:
 		}
 	}
 
-	Iterator remove_iterator(Iterator iter) volatile {
+	void remove_iterator(Iterator& iter) volatile {
 		Iterator oldIterator = iter++;
 		remove_node(oldIterator.current);
-		return iter;
 	}
 
 };

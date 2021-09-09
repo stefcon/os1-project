@@ -6,7 +6,7 @@
 
 class KernelEv {
 public:
-	KernelEv(IVTNo ivt_no);
+	KernelEv(IVTNo ivt_no, int priority);
 	~KernelEv();
 
 	void wait();
