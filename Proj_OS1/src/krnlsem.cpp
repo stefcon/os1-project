@@ -46,7 +46,7 @@ void KernelSem::remove_from_all_semaphores() {
 }
 
 
-void KernelSem::block(Time max_time_to_wait, int& wait_return_val) {
+void KernelSem::block(Time max_time_to_wait, volatile int& wait_return_val) {
 	BlockedInfo* blocked_info = new BlockedInfo((PCB*)PCB::running, max_time_to_wait, wait_return_val);
 	PCB::running->set_state(PCB::Suspended);
 
@@ -63,7 +63,7 @@ void KernelSem::block(Time max_time_to_wait, int& wait_return_val) {
 
 
 void KernelSem::deblock(List<BlockedInfo*>::Iterator& sem_node, int wait_return_val, ListType list_type) {
-
+	LOCK
 	(*sem_node)->wait_return_val = wait_return_val;
 	(*sem_node)->pcb->set_state(PCB::Ready);
 	Scheduler::put((*sem_node)->pcb);
@@ -81,11 +81,12 @@ void KernelSem::deblock(List<BlockedInfo*>::Iterator& sem_node, int wait_return_
 		unlimited_blocked_list_.remove_iterator(to_remove);
 	else if (list_type == Sleep)
 		sleep_blocked_list_.remove_iterator(to_remove);
+	UNLOCK
 }
 
 
 int KernelSem::wait(Time max_time_to_wait) {
-	int wait_return_val;
+	volatile int wait_return_val;
 	LOCK
 	if (--val_ < 0) {
 		block(max_time_to_wait, wait_return_val);

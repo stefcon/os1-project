@@ -32,7 +32,7 @@ public:
 
 
 	static List<PCB*> all_pcbs_;
-	static volatile PCB* volatile running;
+	static volatile PCB* running;
 
 	friend void interrupt timer(...);
 	friend class System;

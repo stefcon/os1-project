@@ -10,8 +10,8 @@ public:
 	struct BlockedInfo {
 		PCB* pcb;
 		int time_to_wait;
-		int& wait_return_val;
-		BlockedInfo(PCB* process, int time, int& val)
+		volatile int& wait_return_val;
+		BlockedInfo(PCB* process, int time, volatile int& val)
 		: pcb(process), time_to_wait(time), wait_return_val(val) {}
 	};
 
@@ -30,7 +30,7 @@ public:
 protected:
 	enum ListType {Unlimited, Sleep};
 
-	void block(Time max_time_to_wait, int& wait_return_val);
+	void block(Time max_time_to_wait, volatile int& wait_return_val);
 	void deblock(List<BlockedInfo*>::Iterator& sem_node, int wait_return_val, ListType list_type = Unlimited);
 
 	int val_;
@@ -39,7 +39,7 @@ protected:
 
 private:
 	List<BlockedInfo*> unlimited_blocked_list_;
-	volatile List<BlockedInfo*> sleep_blocked_list_;
+	List<BlockedInfo*> sleep_blocked_list_;
 
 	void insert_sleep_sorted(BlockedInfo* blocked_info);
 	void remove_from_all_semaphores();

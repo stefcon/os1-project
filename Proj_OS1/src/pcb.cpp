@@ -8,7 +8,7 @@
 #include "SCHEDULE.H"
 
 ID PCB::threadID = 0;
-volatile PCB* volatile PCB::running = nullptr;
+volatile PCB* PCB::running = nullptr;
 volatile PCB* fork_child = nullptr;
 volatile PCB* fork_parent = nullptr;
 List<PCB*> PCB::all_pcbs_;

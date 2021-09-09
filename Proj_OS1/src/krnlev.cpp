@@ -48,7 +48,7 @@ void KernelEv::signal() {
 	#ifndef BCC_BLOCK_IGNORE
 	HARD_LOCK
 	#endif
-	if (++val_ <= 0 && blocked_->get_state() != PCB::Terminated) {
+	if (++val_ <= 0 && blocked_ != nullptr) {
 		blocked_->set_state(PCB::Ready);
 		Scheduler::put(blocked_);
 		blocked_ = nullptr;
