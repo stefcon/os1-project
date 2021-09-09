@@ -4,9 +4,9 @@
 
 
 Semaphore::Semaphore(int init) {
-	LOCK
+	HARD_LOCK
 	my_impl_ = new KernelSem(init);
-	UNLOCK
+	HARD_UNLOCK
 }
 
 Semaphore::~Semaphore() {

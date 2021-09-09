@@ -4,9 +4,9 @@
 #include "utils.h"
 
 Event::Event(IVTNo ivt_no) {
-	LOCK
+	HARD_LOCK
 	my_impl_ = new KernelEv(ivt_no);
-	UNLOCK
+	HARD_UNLOCK
 }
 
 Event::~Event() {

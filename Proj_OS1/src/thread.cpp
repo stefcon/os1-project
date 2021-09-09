@@ -5,9 +5,9 @@
 
 
 Thread::Thread(StackSize stack_size, Time time_slice) {
-	LOCK
+	HARD_LOCK
 	my_pcb_ = new PCB(stack_size, time_slice, this);
-	UNLOCK
+	HARD_UNLOCK
 }
 
 

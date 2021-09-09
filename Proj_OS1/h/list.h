@@ -23,43 +23,9 @@ public:
 	~List() { clear(); }
 
 	// Methods for inserting, removing and accessing elements of the list
-	bool push_front(const T& t) volatile{
-		Node* new_node;
-		if (head_ == nullptr) {
-			new_node = new Node(t);
-			if (new_node == nullptr) return false;
+	bool push_front(const T& t) volatile;
 
-			head_ = tail_ = new_node;
-		} else {
-			new_node = new Node(t, head_);
-			if (new_node == nullptr) return false;
-
-			head_ = new_node;
-			head_->next->prev = head_;
-		}
-
-		++size_;
-		return true;
-	}
-
-	bool push_back(const T& t) volatile {
-		Node* new_node;
-		if (head_ == nullptr) {
-			new_node = new Node(t);
-			if (new_node == nullptr) return false;
-
-			head_ = tail_ = new_node;
-		} else {
-			new_node = new Node(t, nullptr, tail_);
-			if (new_node == nullptr) return false;
-
-			tail_ = new_node;
-			tail_->prev->next = tail_;
-
-		}
-		++size_;
-		return true;
-	}
+	bool push_back(const T& t) volatile;
 
 	void remove_node(Node* node) volatile {
 		if (node) {
@@ -98,7 +64,7 @@ public:
 	}
 
 	bool empty() const volatile {
-		return head_ == nullptr;
+		return size_ == 0;
 	}
 
 	// Iterator class definition
@@ -147,7 +113,7 @@ public:
 	}
 
 	// Inserts new element before a given iterator
-	Iterator insert(Iterator iter, const T& val) volatile {
+	Iterator insert(Iterator& iter, const T& val) volatile {
 		if (iter == begin()) {
 			if (push_front(val))
 				return Iterator(head_);
@@ -171,13 +137,52 @@ public:
 		}
 	}
 
-	Iterator remove_iterator(Iterator iter) volatile {
+	void remove_iterator(Iterator& iter) volatile {
 		Iterator oldIterator = iter++;
 		remove_node(oldIterator.current);
-		return iter;
 	}
 
 };
+
+template <class T>
+bool List<T>::push_front(const T& t) volatile {
+	Node* new_node;
+	if (head_ == nullptr) {
+		new_node = new Node(t);
+		if (new_node == nullptr) return false;
+
+		head_ = tail_ = new_node;
+	} else {
+		new_node = new Node(t, head_);
+		if (new_node == nullptr) return false;
+
+		head_ = new_node;
+		head_->next->prev = head_;
+	}
+
+	++size_;
+	return true;
+}
+
+template <class T>
+bool List<T>::push_back(const T& t) volatile {
+	Node* new_node;
+	if (head_ == nullptr) {
+		new_node = new Node(t);
+		if (new_node == nullptr) return false;
+
+		head_ = tail_ = new_node;
+	} else {
+		new_node = new Node(t, nullptr, tail_);
+		if (new_node == nullptr) return false;
+
+		tail_ = new_node;
+		tail_->prev->next = tail_;
+
+	}
+	++size_;
+	return true;
+}
 
 template <class T>
 void List<T>::clear() volatile {
