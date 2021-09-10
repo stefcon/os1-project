@@ -50,6 +50,8 @@ private:
 	Semaphore children_sem_;
 	PCB* parent_;
 	List<PCB*> children_list_;
+	// Modification
+	PCB* new_child;
 
 
 	Thread* my_thread_;

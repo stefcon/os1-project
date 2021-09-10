@@ -133,6 +133,7 @@ public:
 			new_node->prev = iter.current->prev;
 			iter.current->prev->next = new_node;
 			iter.current->prev = new_node;
+			++size_;
 			return Iterator(new_node);
 		}
 	}

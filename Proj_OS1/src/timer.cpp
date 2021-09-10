@@ -16,6 +16,9 @@ static unsigned temporary_sp;
 static unsigned temporary_ss;
 static unsigned temporary_bp;
 
+// Modification
+List<PCB*> parents;
+
 void initializeTimer() {
 	#ifndef BCC_BLOCK_IGNORE
 	HARD_LOCK
@@ -69,11 +72,42 @@ void interrupt timer(...) {
 				Scheduler::put((PCB*)PCB::running);
 			}
 
-			PCB::running = Scheduler::get();
+			// Modification
+			if (PCB::running->new_child != nullptr) {
+				PCB* old_running = (PCB*)PCB::running;
+				PCB::running = old_running->new_child;
+				old_running->new_child = nullptr;
+				PCB::running->state_ = PCB::Ready;
+			} else {
+				PCB::running = Scheduler::get();
 
-			if (PCB::running == nullptr) {
-				PCB::running = System::idle_pcb_;
+				if (PCB::running == nullptr) {
+					PCB::running = System::idle_pcb_;
+				}
+				else if (PCB::running->children_list_.empty() == false) {
+					parents.push_back((PCB*)PCB::running);
+					bool has_children = true;
+
+					while ((PCB::running = Scheduler::get()) != 0 && has_children) {
+						if (PCB::running->children_list_.empty() == false) {
+							parents.push_back((PCB*)PCB::running);
+						}
+						else {
+							has_children = false;
+						}
+					}
+
+					if (has_children) {
+						PCB::running = parents.front();
+						parents.pop_front();
+					}
+					while (parents.empty() == false) {
+						Scheduler::put(parents.front());
+						parents.pop_front();
+					}
+				}
 			}
+
 
 			PCB::running->state_ = PCB::Running;
 			temporary_sp = PCB::running->sp_;

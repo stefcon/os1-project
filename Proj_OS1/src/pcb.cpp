@@ -16,7 +16,7 @@ List<PCB*> PCB::all_pcbs_;
 
 PCB::PCB(StackSize stack_size, Time time_slice, Thread* my_thread)
 : time_slice_(time_slice), my_thread_(my_thread), state_(Initialized),
-  children_num_(0), children_sem_(0), parent_(nullptr) {
+  children_num_(0), children_sem_(0), parent_(nullptr), new_child(nullptr) {
 
 	LOCK
 	my_id_ = threadID++;
@@ -251,6 +251,12 @@ void interrupt PCB::fork() {
 	++fork_parent->children_num_;
 	fork_parent->children_list_.push_back((PCB*)fork_child);
 
-	fork_child->my_thread_->start();
+	// Modification
+	fork_parent->new_child = (PCB*)fork_child;
+
+	//fork_child->my_thread_->start();
+	UNLOCK
+	dispatch();
+	LOCK
 
 }
