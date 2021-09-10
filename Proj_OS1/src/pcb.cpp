@@ -255,6 +255,7 @@ void interrupt PCB::fork() {
 	fork_parent->new_child = (PCB*)fork_child;
 
 	//fork_child->my_thread_->start();
+
 	UNLOCK
 	dispatch();
 	LOCK
