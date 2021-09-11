@@ -20,6 +20,7 @@ public:
 
 	int wait(Time max_time_to_wait);
 	void signal();
+	void priority_signal();
 
 	int val () const;
 

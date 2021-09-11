@@ -11,11 +11,15 @@ public:
 
 	virtual int wait (Time max_time_to_wait);
 	virtual void signal();
+	// Modif
+	void turnOnPriorities();
+
 
 	int val () const;	// Returns the current value of the semaphore
 
 private:
 	KernelSem* my_impl_;
+	unsigned priority_on;
 };
 
 #endif /* SEMAPHOR_H_ */

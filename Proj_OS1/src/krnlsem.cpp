@@ -116,6 +116,48 @@ void KernelSem::signal() {
 	HARD_UNLOCK
 }
 
+// Modif
+
+void KernelSem::priority_signal() {
+	// We are looking for the highest ID in both of the lists and deblocking
+	// that thread
+	HARD_LOCK
+	if (val_++ < 0) {
+		List<BlockedInfo*>::Iterator to_deblock;
+		List<BlockedInfo*>::Iterator iter;
+		ListType list_type;
+
+		// Setting the starting value of the to_deblock iterator
+		if (unlimited_blocked_list_.empty() == false) {
+			to_deblock = unlimited_blocked_list_.begin();
+			list_type = Unlimited;
+		}
+		else {
+			to_deblock = sleep_blocked_list_.begin();
+			list_type = Sleep;
+		}
+
+		iter = unlimited_blocked_list_.begin();
+		for (; iter != unlimited_blocked_list_.end(); ++iter) {
+			if ((*iter)->pcb->get_id() > (*to_deblock)->pcb->get_id()) {
+				to_deblock = iter;
+				list_type = Unlimited;
+			}
+		}
+
+		iter = sleep_blocked_list_.begin();
+		for (; iter != sleep_blocked_list_.end(); ++iter) {
+			if ((*iter)->pcb->get_id() > (*to_deblock)->pcb->get_id()) {
+				to_deblock = iter;
+				list_type = Sleep;
+			}
+		}
+
+		deblock(to_deblock, 1, list_type);
+	}
+	HARD_UNLOCK
+}
+
 
 void KernelSem::insert_sleep_sorted(BlockedInfo* blocked_info) {
 	List<BlockedInfo*>::Iterator iter = sleep_blocked_list_.begin();
