@@ -10,10 +10,10 @@ Semaphore::Semaphore(int init) {
 }
 
 Semaphore::~Semaphore() {
-	LOCK
+	HARD_LOCK
 	delete my_impl_;
 	my_impl_ = nullptr;
-	UNLOCK
+	HARD_UNLOCK
 }
 
 int Semaphore::wait(Time max_time_to_wait) {

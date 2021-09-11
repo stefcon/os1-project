@@ -10,10 +10,10 @@ Event::Event(IVTNo ivt_no) {
 }
 
 Event::~Event() {
-	LOCK
+	HARD_LOCK
 	delete my_impl_;
 	my_impl_ = nullptr;
-	UNLOCK
+	HARD_UNLOCK
 }
 
 void Event::wait() {
