@@ -2,6 +2,7 @@
 #include "SCHEDULE.H"
 #include "lock.h"
 #include "utils.h"
+#include <stdio.h>
 
 
 List<KernelSem*> KernelSem::all_semaphores_;
@@ -9,7 +10,8 @@ List<KernelSem*> KernelSem::all_semaphores_;
 unsigned KernelSem::global_tick_counter_ = 0;
 
 
-KernelSem::KernelSem(int init) : val_(init<0? 0:init), tick_counter_(0) {
+KernelSem::KernelSem(int init) : val_(init<0? 0:init), tick_counter_(0), curr_lock_(Free),
+	lock_val_(0) {
 	LOCK
 	KernelSem::all_semaphores_.push_back(this);
 	UNLOCK
@@ -169,6 +171,102 @@ void KernelSem::tickAllSemaphores() {
 
 int KernelSem::val() const {
 	return val_;
+}
+
+// Modif
+void KernelSem::open(char c) {
+	LOCK
+	if (c == 'r') {
+		if (curr_lock_ == Write) {
+			// Exclusive key is held by another thread, needs to get blocked
+			LockInfo* lock_info = new LockInfo((PCB*)PCB::running, Read);
+			PCB::running->set_state(PCB::Suspended);
+			lock_blocked_list_.push_back(lock_info);
+			UNLOCK
+			dispatch();
+			LOCK
+		}
+		else {
+			curr_lock_ = Read;
+			++lock_val_;
+		}
+	}
+	else if (c == 'w') {
+		if (curr_lock_ == Write || curr_lock_ == Read) {
+			LockInfo* lock_info = new LockInfo((PCB*)PCB::running, Write);
+			PCB::running->set_state(PCB::Suspended);
+			lock_blocked_list_.push_back(lock_info);
+			UNLOCK
+			dispatch();
+			LOCK
+		}
+		else {
+			curr_lock_ = Write;
+			lock_val_ = 1;
+		}
+	}
+	UNLOCK
+}
+
+
+void KernelSem::close() {
+	LOCK
+	if (curr_lock_ == Read) {
+		--lock_val_;
+		if (lock_val_ == 0 && lock_blocked_list_.empty() == false) {
+			// We have "Write" threads waiting in the liste
+			LockInfo* lock_info = lock_blocked_list_.front();
+			lock_blocked_list_.pop_front();
+
+			lock_info->pcb->set_state(PCB::Ready);
+			Scheduler::put(lock_info->pcb);
+
+			curr_lock_ = Write;
+			++lock_val_;
+		}
+	}
+	else if (curr_lock_ == Write) {
+		--lock_val_;
+		if (lock_blocked_list_.empty() == false) {
+
+			LockInfo* lock_info = lock_blocked_list_.front();
+
+			if (lock_info->lock == Write) {
+				lock_blocked_list_.pop_front();
+
+				lock_info->pcb->set_state(PCB::Ready);
+				Scheduler::put(lock_info->pcb);
+				delete lock_info;
+
+				curr_lock_ = Write;
+				++lock_val_;
+			}
+			else {
+				curr_lock_ = Read;
+
+				List<LockInfo*>::Iterator iter = lock_blocked_list_.begin();
+				while (iter != lock_blocked_list_.end()) {
+					if ((*iter)->lock == Read) {
+
+						(*iter)->pcb->set_state(PCB::Ready);
+						Scheduler::put((*iter)->pcb);
+						delete *iter;
+
+						++lock_val_;
+						lock_blocked_list_.remove_iterator(iter);
+					}
+					else {
+						++iter;
+					}
+				}
+			}
+		}
+		else {
+			curr_lock_ = Free;
+			lock_val_ = 0;
+		}
+	}
+	UNLOCK
 }
 
 

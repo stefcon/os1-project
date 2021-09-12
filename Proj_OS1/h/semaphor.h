@@ -12,6 +12,11 @@ public:
 	virtual int wait (Time max_time_to_wait);
 	virtual void signal();
 
+	// Modif
+
+	void open(char);
+	void close();
+
 	int val () const;	// Returns the current value of the semaphore
 
 private:

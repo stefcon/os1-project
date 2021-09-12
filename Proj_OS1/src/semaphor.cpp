@@ -27,3 +27,13 @@ void Semaphore::signal() {
 int Semaphore::val() const {
 	return my_impl_->val();
 }
+
+// Modif
+void Semaphore::open(char c) {
+	my_impl_->open(c);
+}
+
+void Semaphore::close() {
+	my_impl_->close();
+}
+

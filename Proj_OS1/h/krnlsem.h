@@ -6,6 +6,9 @@
 #include "list.h"
 
 class KernelSem {
+protected:
+	// Modif
+	enum LockType {Free, Read, Write};
 public:
 	struct BlockedInfo {
 		PCB* pcb;
@@ -15,11 +18,22 @@ public:
 		: pcb(process), time_to_wait(time), wait_return_val(val) {}
 	};
 
+	// Modif
+	struct LockInfo {
+		PCB* pcb;
+		LockType lock;
+		LockInfo(PCB* process, LockType lt) : pcb(process), lock(lt) {}
+	};
+
 	KernelSem(int init = 1);
 	~KernelSem();
 
 	int wait(Time max_time_to_wait);
 	void signal();
+
+	// Modif
+	void open(char);
+	void close();
 
 	int val () const;
 
@@ -40,6 +54,10 @@ protected:
 private:
 	List<BlockedInfo*> unlimited_blocked_list_;
 	List<BlockedInfo*> sleep_blocked_list_;
+	//Modif
+	List<LockInfo*> lock_blocked_list_;
+	LockType curr_lock_;
+	int lock_val_;
 
 	void insert_sleep_sorted(BlockedInfo* blocked_info);
 	void remove_from_all_semaphores();
