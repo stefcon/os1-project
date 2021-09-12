@@ -153,7 +153,9 @@ void PCB::waitToComplete() {
 			&& this != System::main_pcb_
 			&& this != System::idle_pcb_) {
 		PCB::running->state_ = Suspended;
+		HARD_LOCK
 		suspended_list_.push_front((PCB*)PCB::running);
+		HARD_UNLOCK
 		UNLOCK
 		dispatch();
 	}

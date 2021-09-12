@@ -10,14 +10,14 @@ unsigned KernelSem::global_tick_counter_ = 0;
 
 
 KernelSem::KernelSem(int init) : val_(init<0? 0:init), tick_counter_(0) {
-	LOCK
+
 	KernelSem::all_semaphores_.push_back(this);
-	UNLOCK
+
 }
 
 
 KernelSem::~KernelSem() {
-	LOCK
+
 	remove_from_all_semaphores();
 
 	List<BlockedInfo*>::Iterator to_deblock;
@@ -31,7 +31,7 @@ KernelSem::~KernelSem() {
 		deblock(to_deblock, 0, Sleep);
 	}
 
-	UNLOCK
+
 }
 
 
@@ -54,11 +54,8 @@ void KernelSem::block(Time max_time_to_wait, volatile int& wait_return_val) {
 		unlimited_blocked_list_.push_back(blocked_info);
 	else
 		insert_sleep_sorted(blocked_info);
-	UNLOCK
 
 	dispatch();
-
-	LOCK
 }
 
 
@@ -87,13 +84,13 @@ void KernelSem::deblock(List<BlockedInfo*>::Iterator& sem_node, int wait_return_
 
 int KernelSem::wait(Time max_time_to_wait) {
 	volatile int wait_return_val;
-	LOCK
+	HARD_LOCK
 	if (--val_ < 0) {
 		block(max_time_to_wait, wait_return_val);
 	} else {
 		wait_return_val = 1;
 	}
-	UNLOCK
+	HARD_UNLOCK
 	return wait_return_val;
 }
 
