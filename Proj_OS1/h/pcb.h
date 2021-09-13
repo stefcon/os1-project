@@ -17,6 +17,9 @@ public:
 	enum State { Initialized, Ready, Suspended, Running, Terminated };
 
 	PCB(StackSize stack_size, Time time_slice, Thread* my_thread = nullptr);
+	//Modif
+	PCB(void (*f) (void*), void* param, StackSize stack_size, Time time_slice, Thread* my_thread);
+
 	~PCB();
 
 	void start();
@@ -51,6 +54,10 @@ private:
 	PCB* parent_;
 	List<PCB*> children_list_;
 
+
+	// Modif
+	void (*func_) (void*);
+	void* param_;
 
 	Thread* my_thread_;
 

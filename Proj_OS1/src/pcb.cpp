@@ -16,7 +16,7 @@ List<PCB*> PCB::all_pcbs_;
 
 PCB::PCB(StackSize stack_size, Time time_slice, Thread* my_thread)
 : time_slice_(time_slice), my_thread_(my_thread), state_(Initialized),
-  children_num_(0), children_sem_(0), parent_(nullptr) {
+  children_num_(0), children_sem_(0), parent_(nullptr), func_(nullptr) {
 
 	LOCK
 	my_id_ = threadID++;
@@ -28,6 +28,28 @@ PCB::PCB(StackSize stack_size, Time time_slice, Thread* my_thread)
 	if (all_pcbs_.push_back(this) == false)
 		my_id_ = -1;
 	UNLOCK
+}
+
+// Modif
+PCB::PCB(void (*f) (void*), void* param, StackSize stack_size, Time time_slice, Thread* my_thread)
+		: time_slice_(time_slice), my_thread_(my_thread), state_(Initialized),
+		  children_num_(0), children_sem_(0), parent_(nullptr), func_(nullptr) {
+
+	LOCK
+	my_id_ = threadID++;
+	UNLOCK
+
+	initializeStack(stack_size);
+
+	LOCK
+	if (all_pcbs_.push_back(this) == false)
+		my_id_ = -1;
+	UNLOCK
+
+	func_ = f;
+	param_ = param;
+	start();
+
 }
 
 
@@ -130,7 +152,12 @@ unsigned PCB::get_time_slice() const volatile {
 
 
 void PCB::wrapper() {
-	PCB::running->my_thread_->run();
+	// Modif
+	if (PCB::running->func_ == nullptr) {
+		PCB::running->my_thread_->run();
+	} else {
+		PCB::running->func_(PCB::running->param_);
+	}
 	PCB::exit();
 }
 

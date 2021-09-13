@@ -10,9 +10,17 @@ Thread::Thread(StackSize stack_size, Time time_slice) {
 	HARD_UNLOCK
 }
 
+Thread::Thread(void (*f) (void*), void* param, StackSize stack_size, Time time_slice) {
+	HARD_LOCK
+	my_pcb_ = new PCB(f, param, stack_size, time_slice, this);
+	HARD_UNLOCK
+}
+
 
 Thread::~Thread() {
 	HARD_LOCK
+	// Modif
+	waitToComplete();
 	delete my_pcb_;
 	my_pcb_ = nullptr;
 	HARD_UNLOCK

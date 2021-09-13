@@ -29,6 +29,9 @@ public:
 	static void waitForForkChildren();
 
 	virtual Thread* clone() const;
+	// Modif
+	Thread(void (*f) (void*), void* param,
+			StackSize stack_size = defaultStackSize, Time time_slice = defaultTimeSlice);
 
 protected:
 	friend class PCB;
