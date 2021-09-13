@@ -48,8 +48,9 @@ public:
 		KernelSem* sem;
 		bool pair_blocked;
 		bool pair_critical;
+		bool sem_blocked;
 		PairInfo(PCB* p1, PCB* p2, KernelSem* s) : pcb1(p1), pcb2(p2), sem(s),
-				pair_blocked(false), pair_critical(false) {}
+				pair_blocked(false), pair_critical(false), sem_blocked(false) {}
 	};
 
 private:

@@ -85,21 +85,26 @@ void KernelSem::deblock(List<BlockedInfo*>::Iterator& sem_node, int wait_return_
 int KernelSem::wait(Time max_time_to_wait) {
 	volatile int wait_return_val;
 	HARD_LOCK
-	if (--val_ < 0 || check_pair_critical()) {
+	if (--val_ < 0) {
 		// Update shared structure
 		if (PCB::running->my_pair_ && PCB::running->my_pair_->sem == this)
-			PCB::running->my_pair_->pair_blocked = true;
+			PCB::running->my_pair_->sem_blocked = true;
 
 		printf("Thread ID: %d blocked\n", Thread::getRunningId());
 
 		block(max_time_to_wait, wait_return_val);
 	} else {
-		if (PCB::running->my_pair_ && PCB::running->my_pair_->sem == this)
-			PCB::running->my_pair_->pair_critical = true;
-		printf("Thread ID: %d passed\n", Thread::getRunningId());
-
 		wait_return_val = 1;
 	}
+	while (check_pair_critical()) {
+		printf("Thread ID: %d blocked\n", Thread::getRunningId());
+		PCB::running->set_state(PCB::Suspended);
+		PCB::running->my_pair_->pair_blocked = true;
+		dispatch();
+	}
+	if (PCB::running->my_pair_ && PCB::running->my_pair_->sem == this)
+		PCB::running->my_pair_->pair_critical = true;
+	printf("Thread ID: %d passed\n", Thread::getRunningId());
 	HARD_UNLOCK
 	return wait_return_val;
 }
@@ -107,9 +112,11 @@ int KernelSem::wait(Time max_time_to_wait) {
 
 void KernelSem::signal() {
 	HARD_LOCK
-	if (check_pair_blocked()) {
+	PCB* pair = nullptr;
+	bool flag = false;
+	if (check_pair_blocked() || check_sem_blocked()) {
 		// We give advantage to our pair when signaling
-		PCB* pair;
+		flag = true;
 		if (PCB::running->my_pair_->pcb1 == PCB::running) {
 			pair = PCB::running->my_pair_->pcb2;
 		}
@@ -117,33 +124,43 @@ void KernelSem::signal() {
 			pair = PCB::running->my_pair_->pcb1;
 		}
 
-		printf("Thread ID: %d unblocked\n", pair->get_id());
+		if (check_pair_blocked()) {
 
-		List<BlockedInfo*>::Iterator to_deblock;
-		to_deblock = unlimited_blocked_list_.begin();
-		for (; to_deblock != unlimited_blocked_list_.end()
-		&& (*to_deblock)->pcb != pair; ++to_deblock);
-
-		if (to_deblock != unlimited_blocked_list_.end()) {
-			deblock(to_deblock, 1, Unlimited);
+			pair->set_state(PCB::Ready);
+			pair->my_pair_->pair_blocked = false;
+			Scheduler::put(pair);
 		}
 		else {
-			to_deblock = sleep_blocked_list_.begin();
-			for (; to_deblock != sleep_blocked_list_.end()
+
+			printf("Thread ID: %d unblocked\n", pair->get_id());
+
+			List<BlockedInfo*>::Iterator to_deblock;
+			to_deblock = unlimited_blocked_list_.begin();
+			for (; to_deblock != unlimited_blocked_list_.end()
 			&& (*to_deblock)->pcb != pair; ++to_deblock);
 
-			deblock(to_deblock, 1, Unlimited);
-		}
+			if (to_deblock != unlimited_blocked_list_.end()) {
+				deblock(to_deblock, 1, Unlimited);
+			}
+			else {
+				to_deblock = sleep_blocked_list_.begin();
+				for (; to_deblock != sleep_blocked_list_.end()
+				&& (*to_deblock)->pcb != pair; ++to_deblock);
 
-		PCB::running->my_pair_->pair_blocked = false;
-		if (unlimited_blocked_list_.empty() == false && sleep_blocked_list_.empty() == false)
-			++val_;
+				deblock(to_deblock, 1, Unlimited);
+			}
+
+			PCB::running->my_pair_->sem_blocked = false;
+
+		}
 	}
-	else if (val_++ < 0) {
+	if ((val_++ < 0 || unlimited_blocked_list_.size() || sleep_blocked_list_.size()) && !flag) {
 		List<BlockedInfo*>::Iterator to_deblock;
 
 		if (unlimited_blocked_list_.empty() == false) {
 			to_deblock = unlimited_blocked_list_.begin();
+			if ((*to_deblock)->pcb->my_pair_)
+				(*to_deblock)->pcb->my_pair_->sem_blocked = false;
 
 			printf("Thread ID: %d unblocked\n", (*to_deblock)->pcb->get_id());
 
@@ -151,16 +168,16 @@ void KernelSem::signal() {
 		}
 		else {
 			to_deblock = sleep_blocked_list_.begin();
+			if ((*to_deblock)->pcb->my_pair_)
+					(*to_deblock)->pcb->my_pair_->sem_blocked = false;
 
 			printf("Thread ID: %d unblocked\n", (*to_deblock)->pcb->get_id());
 
 			deblock(to_deblock, 1, Sleep);
 		}
-
-		if (PCB::running->my_pair_) {
-			PCB::running->my_pair_->pair_critical = false;
-		}
-
+	}
+	if (PCB::running->my_pair_) {
+		PCB::running->my_pair_->pair_critical = false;
 	}
 	HARD_UNLOCK
 }
@@ -168,7 +185,7 @@ void KernelSem::signal() {
 // Modif
 bool KernelSem::check_pair_critical() {
 	PCB* p = (PCB*)PCB::running;
-	if (p->my_pair_ != nullptr && p->my_pair_->pair_critical) {
+	if (p->my_pair_ != nullptr && p->my_pair_->pair_critical && p->my_pair_->sem == this) {
 		return true;
 	}
 	else {
@@ -179,7 +196,7 @@ bool KernelSem::check_pair_critical() {
 
 bool KernelSem::check_pair_blocked() {
 	PCB* p = (PCB*)PCB::running;
-	if (p->my_pair_ != nullptr && p->my_pair_->pair_blocked) {
+	if (p->my_pair_ != nullptr && p->my_pair_->pair_blocked && p->my_pair_->sem == this) {
 		return true;
 	}
 	else {
@@ -187,6 +204,15 @@ bool KernelSem::check_pair_blocked() {
 	}
 }
 
+bool KernelSem::check_sem_blocked() {
+	PCB* p = (PCB*)PCB::running;
+	if (p->my_pair_ != nullptr && p->my_pair_->sem_blocked && p->my_pair_->sem == this) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
 
 void KernelSem::insert_sleep_sorted(BlockedInfo* blocked_info) {
 	List<BlockedInfo*>::Iterator iter = sleep_blocked_list_.begin();

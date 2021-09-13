@@ -40,6 +40,7 @@ protected:
 	// Modif
 	bool check_pair_critical();
 	bool check_pair_blocked();
+	bool check_sem_blocked();
 	friend class PCB;
 
 private:

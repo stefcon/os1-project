@@ -202,6 +202,15 @@ void PCB::exit() {
 		PCB::running->parent_->children_sem_.signal();
 	}
 
+	// Modif
+	if (PCB::running->my_pair_->pcb1 == PCB::running) {
+		PCB::running->my_pair_->pcb2->my_pair_ = nullptr;
+	}
+	else {
+		PCB::running->my_pair_->pcb1->my_pair_ = nullptr;
+	}
+	delete PCB::running->my_pair_;
+
 	PCB::running->set_state(Terminated);
 	UNLOCK
 
