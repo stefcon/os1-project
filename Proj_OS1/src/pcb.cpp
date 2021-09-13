@@ -208,6 +208,16 @@ void PCB::exit() {
 	dispatch();
 }
 
+// Modif
+void PCB::pair(Semaphore* sem, Thread* t1, Thread* t2) {
+	HARD_LOCK
+	PairInfo* pair_info = new PairInfo(t1->my_pcb_, t2->my_pcb_, sem->my_impl_);
+
+	t1->my_pcb_->my_pair_ = pair_info;
+	t2->my_pcb_->my_pair_ = pair_info;
+	HARD_UNLOCK
+}
+
 
 void interrupt PCB::fork() {
 

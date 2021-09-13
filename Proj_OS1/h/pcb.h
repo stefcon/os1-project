@@ -37,6 +37,20 @@ public:
 	friend void interrupt timer(...);
 	friend class System;
 	friend class Thread;
+	friend class KernelSem;
+
+	// Modif
+	static void pair(Semaphore* sem, Thread* t1, Thread* t2);
+
+	struct PairInfo {
+		PCB* pcb1;
+		PCB* pcb2;
+		KernelSem* sem;
+		bool pair_blocked;
+		bool pair_critical;
+		PairInfo(PCB* p1, PCB* p2, KernelSem* s) : pcb1(p1), pcb2(p2), sem(s),
+				pair_blocked(false), pair_critical(false) {}
+	};
 
 private:
 	unsigned sp_, ss_, bp_;
@@ -51,7 +65,8 @@ private:
 	PCB* parent_;
 	List<PCB*> children_list_;
 
-
+	// Modif
+	PairInfo* my_pair_;
 	Thread* my_thread_;
 
 	static ID threadID;

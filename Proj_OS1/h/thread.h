@@ -10,6 +10,7 @@ const Time defaultTimeSlice = 2; // default = 2**55ms
 typedef int ID;
 
 class PCB;
+class Semaphore;
 
 
 class Thread {
@@ -27,6 +28,9 @@ public:
 	static ID fork();
 	static void exit();
 	static void waitForForkChildren();
+
+	// Modif
+	static void pair(Semaphore* sem, Thread* t1, Thread* t2);
 
 	virtual Thread* clone() const;
 

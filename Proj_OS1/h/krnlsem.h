@@ -37,6 +37,11 @@ protected:
 	unsigned tick_counter_;
 	static unsigned global_tick_counter_;
 
+	// Modif
+	bool check_pair_critical();
+	bool check_pair_blocked();
+	friend class PCB;
+
 private:
 	List<BlockedInfo*> unlimited_blocked_list_;
 	List<BlockedInfo*> sleep_blocked_list_;

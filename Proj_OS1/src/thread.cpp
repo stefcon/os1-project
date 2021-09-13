@@ -73,6 +73,11 @@ void Thread::waitForForkChildren() {
 	PCB::waitForForkChildren();
 }
 
+// Modif
+void Thread::pair(Semaphore* sem, Thread* t1, Thread* t2) {
+	PCB::pair(sem, t1, t2);
+}
+
 
 ID Thread::fork() {
 	LOCK

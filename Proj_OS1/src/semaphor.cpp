@@ -24,6 +24,11 @@ void Semaphore::signal() {
 	my_impl_->signal();
 }
 
+// Modif
+void Semaphore::pair(Thread* t1, Thread* t2) {
+	Thread::pair(this, t1, t2);
+}
+
 int Semaphore::val() const {
 	return my_impl_->val();
 }
