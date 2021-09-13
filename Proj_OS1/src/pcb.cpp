@@ -6,6 +6,7 @@
 #include "utils.h"
 #include "system.h"
 #include "SCHEDULE.H"
+#include "krnlsem.h"
 
 ID PCB::threadID = 0;
 volatile PCB* PCB::running = nullptr;
@@ -16,7 +17,7 @@ List<PCB*> PCB::all_pcbs_;
 
 PCB::PCB(StackSize stack_size, Time time_slice, Thread* my_thread)
 : time_slice_(time_slice), my_thread_(my_thread), state_(Initialized),
-  children_num_(0), children_sem_(0), parent_(nullptr) {
+  children_num_(0), children_sem_(0, 0), parent_(nullptr) {
 
 	LOCK
 	my_id_ = threadID++;
@@ -202,12 +203,52 @@ void PCB::exit() {
 		PCB::running->parent_->children_sem_.signal();
 	}
 
+	// Modif
+	List<SemOp*>::Iterator sem_iter = PCB::running->sem_operations_.begin();
+	for (; sem_iter != PCB::running->sem_operations_.end();) {
+		int n = (*sem_iter)->total;
+		int i;
+		for (i = 0; i < n; ++i) {
+			(*sem_iter)->sem->signal();
+		}
+		PCB::running->sem_operations_.remove_iterator(sem_iter);
+	}
+
 	PCB::running->set_state(Terminated);
 	UNLOCK
 
 	dispatch();
 }
 
+// Modif
+void PCB::register_wait(KernelSem* sem) volatile {
+	List<SemOp*>::Iterator iter = sem_operations_.begin();
+	for (; iter != sem_operations_.end() && (*iter)->sem != sem; ++iter);
+	if (iter != sem_operations_.end()) {
+		(*iter)->total++;
+	}
+	else {
+		SemOp* sem_op = new SemOp(sem);
+		sem_op->total += 1;
+		sem_operations_.push_back(sem_op);
+	}
+}
+
+
+void PCB::register_signal(KernelSem* sem) volatile {
+	List<SemOp*>::Iterator iter = sem_operations_.begin();
+	for (; iter != sem_operations_.end() && (*iter)->sem != sem; ++iter);
+	if (iter != sem_operations_.end()) {
+		if ((*iter)->total > 0) {
+			(*iter)->total--;
+		}
+	}
+	else {
+		SemOp* sem_op = new SemOp(sem);
+		sem_operations_.push_back(sem_op);
+	}
+
+}
 
 void interrupt PCB::fork() {
 

@@ -3,9 +3,9 @@
 #include "lock.h"
 
 
-Semaphore::Semaphore(int init) {
+Semaphore::Semaphore(int undo, int init) {
 	HARD_LOCK
-	my_impl_ = new KernelSem(init);
+	my_impl_ = new KernelSem(undo, init);
 	HARD_UNLOCK
 }
 

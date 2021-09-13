@@ -38,6 +38,10 @@ public:
 	friend class System;
 	friend class Thread;
 
+	// Modif
+	void register_wait(KernelSem* sem) volatile;
+	void register_signal(KernelSem* sem) volatile;
+
 private:
 	unsigned sp_, ss_, bp_;
 	unsigned* stack_;
@@ -50,6 +54,14 @@ private:
 	Semaphore children_sem_;
 	PCB* parent_;
 	List<PCB*> children_list_;
+
+	// Modif
+	struct SemOp {
+		KernelSem* sem;
+		int total;
+		SemOp(KernelSem* s) : sem(s), total(0) {}
+	};
+	List<SemOp*> sem_operations_;
 
 
 	Thread* my_thread_;

@@ -15,7 +15,7 @@ public:
 		: pcb(process), time_to_wait(time), wait_return_val(val) {}
 	};
 
-	KernelSem(int init = 1);
+	KernelSem(int undo = 0, int init = 1);
 	~KernelSem();
 
 	int wait(Time max_time_to_wait);
@@ -43,6 +43,9 @@ private:
 
 	void insert_sleep_sorted(BlockedInfo* blocked_info);
 	void remove_from_all_semaphores();
+
+	// Modif
+	int undo_;
 
 };
 

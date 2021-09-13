@@ -9,7 +9,7 @@ List<KernelSem*> KernelSem::all_semaphores_;
 unsigned KernelSem::global_tick_counter_ = 0;
 
 
-KernelSem::KernelSem(int init) : val_(init<0? 0:init), tick_counter_(0) {
+KernelSem::KernelSem(int undo, int init) : val_(init<0? 0:init), undo_(undo) {
 
 	KernelSem::all_semaphores_.push_back(this);
 
@@ -85,6 +85,10 @@ void KernelSem::deblock(List<BlockedInfo*>::Iterator& sem_node, int wait_return_
 int KernelSem::wait(Time max_time_to_wait) {
 	volatile int wait_return_val;
 	HARD_LOCK
+	// Modif
+	if (undo_ != 0) {
+		PCB::running->register_wait(this);
+	}
 	if (--val_ < 0) {
 		block(max_time_to_wait, wait_return_val);
 	} else {
@@ -97,6 +101,10 @@ int KernelSem::wait(Time max_time_to_wait) {
 
 void KernelSem::signal() {
 	HARD_LOCK
+	// Modif
+	if (undo_ != 0) {
+		PCB::running->register_signal(this);
+	}
 	if (val_++ < 0) {
 		List<BlockedInfo*>::Iterator to_deblock;
 

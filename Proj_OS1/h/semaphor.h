@@ -6,7 +6,7 @@ class KernelSem;
 
 class Semaphore {
 public:
-	Semaphore (int init = 1);
+	Semaphore (int undo = 0, int init = 1);
 	virtual ~Semaphore ();
 
 	virtual int wait (Time max_time_to_wait);
